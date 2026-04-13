@@ -1,22 +1,21 @@
-# Build stage: use Maven with JDK
-FROM maven:3.9.6-eclipse-temurin-17 AS build
-
-WORKDIR /app
-# Copy pom.xml and download dependencies
-COPY pom.xml .
-RUN mvn dependency:go-offline -B
-
-# Copy source code
-COPY C-Project1/src ./src
-
-# Build the application
-RUN mvn package -DskipTests
-
-# Runtime stage: lightweight JRE
-FROM eclipse-temurin:17-jre-alpine
+# Use a base image with GCC
+FROM gcc:12.2.0 as build
 
 WORKDIR /app
 
-COPY --from=build /app/target/myapp-1.0-SNAPSHOT.jar app.jar
+# Copy all source files and makefile
+COPY . .
 
-ENTRYPOINT ["java","-jar","app.jar"]
+# Build the executable using make
+RUN make
+
+# Final stage: use a lightweight runtime image
+FROM debian:stable-slim
+
+WORKDIR /app
+
+# Copy the compiled binary from the build stage
+COPY --from=build /app/ABC.exe .
+
+# Set default command
+CMD ["./ABC.exe"]
