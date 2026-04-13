@@ -4,6 +4,7 @@ pipeline {
     environment {
         AWS_REGION = "ap-south-1"
         ECR_REPO   = "678632989999.dkr.ecr.ap-south-1.amazonaws.com/test-project"
+         EKS_CLUSTER = 'Testcluster'
     }
 
     stages {
@@ -33,5 +34,22 @@ pipeline {
                 }
             }
         }
+        stage('Deploy to EKS') {
+            steps {
+                script {
+                    sh '''
+                        echo "Updating kubeconfig..."
+                        mkdir -p /var/lib/jenkins/.kube
+                        aws eks update-kubeconfig --region $AWS_REGION --name $EKS_CLUSTER --kubeconfig /var/lib/jenkins/.kube/config
+                        export KUBECONFIG=/var/lib/jenkins/.kube/config
+
+                        echo "Applying Kubernetes manifests..."
+                        kubectl apply -f Jenkinsandjava/deployment.yaml --validate=false
+                        kubectl apply -f Jenkinsandjava/service.yaml --validate=false
+                    '''
+                }
+            }
+        }
+
     }
 }
