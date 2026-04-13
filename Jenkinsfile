@@ -44,8 +44,8 @@ pipeline {
                         export KUBECONFIG=/var/lib/jenkins/.kube/config
 
                         echo "Applying Kubernetes manifests..."
-                        kubectl apply -f Jenkinsandjava/deployment.yaml --validate=false
-                        kubectl apply -f Jenkinsandjava/service.yaml --validate=false
+                        kubectl apply -f C-Project1/deployment.yaml --validate=false
+                        kubectl apply -f C-Project1/service.yaml --validate=false
                     '''
                 }
             }
