@@ -1,23 +1,24 @@
 pipeline {
     agent any
+
     environment {
         AWS_REGION = "ap-south-1"   // change to your region
         ECR_REPO   = "678632989999.dkr.ecr.ap-south-1.amazonaws.com/test-project"
+        AWS_CREDS  = credentials('aws-creds')
+    }
+
     stages {
-       stage('Login to ECR'){
-             steps{
-              withAWS(region: 'ap-south-1', credentials: 'aws-creds'){
-                sh '''
-                 $password = aws ecr get-login-password  --region ap-south-1
-                 docker login  --username  AWS --password $password 678632989999.dkr.ecr.ap-south-1.amazonaws.com
-
-                 '''
-
-               }           
-  
-             }
-
+        stage('Login to ECR') {
+            steps {
+                withAWS(region: "${AWS_REGION}", credentials: "${AWS_CREDS}") {
+                    sh '''
+                        aws ecr get-login-password --region ${AWS_REGION} \
+                        | docker login --username AWS --password-stdin 678632989999.dkr.ecr.${AWS_REGION}.amazonaws.com
+                    '''
+                }
             }
+        }
+
         stage('Build Docker Image') {
             steps {
                 script {
@@ -25,6 +26,7 @@ pipeline {
                 }
             }
         }
+
         stage('Push to ECR') {
             steps {
                 script {
@@ -32,6 +34,5 @@ pipeline {
                 }
             }
         }
-    }
     }
 }
